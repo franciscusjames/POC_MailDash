@@ -1,0 +1,16 @@
+# package directories
+.node_modules
+jspm_packages
+package-*
+
+# build output (files.js)
+build
+.build
+
+# nyc
+.nyc*
+coverage/
+node_modules
+
+#VS Files
+.vscode
