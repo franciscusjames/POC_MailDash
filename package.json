@@ -9,6 +9,7 @@
   "author": "ModalGR",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^13.1.8",
     "chai": "^4.2.0",
     "mailparser": "^2.7.7",
     "mocha": "^7.0.0",
