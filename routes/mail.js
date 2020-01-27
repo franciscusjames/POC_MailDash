@@ -3,6 +3,9 @@ var router = express.Router();
 var authHelper = require('../helpers/auth');
 var graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
+const simpleParser = require('mailparser').simpleParser;
+
+var teste;
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -26,20 +29,26 @@ router.get('/', async function(req, res, next) {
         const result = await client
         .api('/me/mailfolders/inbox/messages')
         .top(10)
-        .select('subject,from,receivedDateTime,isRead')
-    //.select('*')
+        //.select('subject,from,receivedDateTime,isRead')
+        .select('*')                              //--MyCode--//
         .orderby('receivedDateTime DESC')
-        .get();
-    //console.log('RESULT: ', result.value[0].body)
+        .get();            
         parms.messages = result.value;            
         res.render('mail', parms);
+        
+        teste = result.value[0].body;        //--MyCode--//
+        console.log('BODY: ', teste);            //--MyCode--//                          
+
       } catch (err) {
         parms.message = 'Error retrieving messages';
         parms.error = { status: `${err.code}: ${err.message}` };
         parms.debug = JSON.stringify(err.body, null, 2);
         res.render('error', parms);
       }
-  
+      
+      let abc = await simpleParser(teste).catch(err => {console.log('ERR: ', err)});
+      console.log('ABC: ', abc);
+
     } else {
       // Redirect to home
       res.redirect('/');
