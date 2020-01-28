@@ -6,10 +6,7 @@ require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
 
-let emailBodyIn, emailBodyOut;
-let remetenteIn, remetenteOut;
-let assuntoIn, assuntoOut;
-let isRead;
+let emailBody, remetente, assunto, isRead, sentDateTime;
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -36,20 +33,22 @@ router.get('/', async function(req, res, next) {
         .top(10)
         //.select('subject,from,receivedDateTime,isRead')
         .select('*')                               
-        //.orderby('receivedDateTime DESC')
+        .orderby('sentDateTime DESC')
         .get();            
         parms.messages = result.value;            
         res.render('mailOut', parms);
-        
+        //console.log('INFO>>> ', result.value[1])
         //PEGA DADOS DO EMAIL PARA GRAVAR NO BANCO
-        // emailBodyOut = result.value[0].body.content;   
-        // remetenteOut = result.value[0].from.emailAddress.address;          
-        // assuntoOut   = result.value[0].subject;  
-        // //isRead    = result.value[0].isRead;
-        // console.log('emailBodyOut: ', emailBodyOut);     
-        // console.log('remetenteOut: ', remetenteOut);      
-        // console.log('assuntoOut: ', assuntoOut);
-        // //console.log('isRead: ', isRead);
+        emailBody = result.value[1].body.content;   
+        remetente = result.value[1].from.emailAddress.address;          
+        assunto   = result.value[1].subject;  
+        isRead    = result.value[1].isRead;
+        sentDateTime = result.value[1].sentDateTime;
+        // console.log('emailBody: ', emailBody);     
+        // console.log('remetente: ', remetente);      
+        // console.log('assunto: ', assunto);
+        // console.log('isRead: ', isRead);
+        // console.log('receivedDateTime: ', receivedDateTime);
 
       } catch (err) {
         parms.message = 'Error retrieving messages';
@@ -57,18 +56,17 @@ router.get('/', async function(req, res, next) {
         parms.debug = JSON.stringify(err.body, null, 2);
         res.render('error', parms);
       }
-      //EMAIL BODY TO JSON      
-    //   parsedEmailOut = htmlToText.fromString(emailBodyOut); 
-    //   //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');     
-    //   parsedEmailOut.Remetente = remetenteOut; 
-    //   parsedEmailOut.Assunto = assuntoOut;       
-    //   console.log('parsedEmailOut: ', parsedEmailOut);               
-    //   //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
-
-    //   let msgIn = htmlToText.fromString(parms.messages); 
-    //   let msgOut = htmlToText.fromString(parms.messagesOut); 
-    //   console.log('parms.messages: ', parms.messages[1,2]); 
-    //   console.log('parms.messagesOut: ', parms.messagesOut[1,2]); 
+       //EMAIL BODY TO JSON 
+       let textBody = htmlToText.fromString(emailBody);    
+       console.log('textBody: ', textBody);       
+       let parsedEmail = {};  
+       parsedEmail.remetente = remetente; 
+       parsedEmail.sentDateTime = sentDateTime;
+       parsedEmail.assunto = assunto;   
+       parsedEmail.body = textBody;
+       //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');                
+       console.log('parsedEmail: ', parsedEmail);               
+       //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
 
     } else {
       // Redirect to home

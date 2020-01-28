@@ -6,10 +6,7 @@ require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
 
-let emailBodyIn, emailBodyOut;
-let remetenteIn, remetenteOut;
-let assuntoIn, assuntoOut;
-let isRead;
+let emailBody, remetente, assunto, isRead, receivedDateTime;
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -31,7 +28,7 @@ router.get('/', async function(req, res, next) {
 
 //CAIXA DE ENTRADA
       try {
-        // Get the 3 newest messages from inbox
+        // Get the 10 newest messages from inbox
         const result = await client
         .api('/me/mailfolders/inbox/messages')
         .top(10)
@@ -43,13 +40,14 @@ router.get('/', async function(req, res, next) {
         res.render('mail', parms);
         
         //PEGA DADOS DO EMAIL PARA GRAVAR NO BANCO
-        // emailBodyIn = result.value[0].body.content;   
-        // remetenteIn = result.value[0].from.emailAddress.address;          
-        // assuntoIn   = result.value[0].subject;  
-        // isRead    = result.value[0].isRead;
-        // console.log('emailBodyIn: ', emailBodyIn);     
-        // console.log('remetenteIn: ', remetenteIn);      
-        // console.log('assuntoIn: ', assuntoIn);
+        emailBody = result.value[0].body.content;   
+        remetente = result.value[0].from.emailAddress.address;          
+        assunto   = result.value[0].subject;  
+        isRead    = result.value[0].isRead;
+        receivedDateTime = result.value[0].receivedDateTime;
+        // console.log('emailBody: ', emailBody);     
+        // console.log('remetente: ', remetente);      
+        // console.log('assunto: ', assunto);
         // //console.log('isRead: ', isRead);
 
       } catch (err) {
@@ -59,12 +57,16 @@ router.get('/', async function(req, res, next) {
         res.render('error', parms);
       }
       // //EMAIL BODY TO JSON      
-      // parsedEmailIn = htmlToText.fromString(emailBodyIn); 
-      // //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');     
-      // parsedEmailIn.Remetente = remetenteIn; 
-      // parsedEmailIn.Assunto = assuntoIn;       
-      // console.log('parsedEmailIn: ', parsedEmailIn);               
-      // //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
+      let textBody = htmlToText.fromString(emailBody);    
+       console.log('textBody: ', textBody);       
+       let parsedEmail = {};  
+       parsedEmail.remetente = remetente; 
+       parsedEmail.receivedDateTime = receivedDateTime;
+       parsedEmail.assunto = assunto;   
+       parsedEmail.body = textBody;
+       //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');                
+       console.log('parsedEmail: ', parsedEmail);               
+       //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
 
     } else {
       // Redirect to home
