@@ -1,14 +1,20 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 require('dotenv').config();
-var indexRouter = require('./routes/index');
-var authorize = require('./routes/authorize');
-var mail = require('./routes/mail');
+const indexRouter = require('./routes/index');
+const authorize = require('./routes/authorize');
+const mail = require('./routes/mail');
+const mongoose = require('mongoose');
 
-var app = express();
+const app = express();
+
+// MongoDB Connection
+mongoose.connect('mongodb+srv://admin:admin@cluster0-5tjqm.mongodb.net/test?retryWrites=true&w=majority', {
+  useNewUrlParser: true, useUnifiedTopology: true
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

@@ -1,9 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var authHelper = require('../helpers/auth');
-var graph = require('@microsoft/microsoft-graph-client');
+const express = require('express');
+const router = express.Router();
+const authHelper = require('../helpers/auth');
+const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
+const Incident = require('../models/incident');
 
 var emailBodyJson;
 
@@ -46,9 +47,12 @@ router.get('/', async function(req, res, next) {
         res.render('error', parms);
       }
       //EMAIL BODY TO JSON      
-      text = JSON.parse('{' + htmlToText.fromString(emailBodyJson) + '"' + '}');      
+      //text = htmlToText.fromString(emailBodyJson); 
+      text = JSON.parse('{' + htmlToText.fromString(emailBodyJson) + '}');      
       console.log('EmailBody: ', text);         
       //console.log(typeof(text));
+      //GRAVA EMAIL INCIDENT NO BANCO
+      
 
     } else {
       // Redirect to home
