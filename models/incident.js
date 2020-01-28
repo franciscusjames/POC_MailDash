@@ -15,7 +15,7 @@ const IncidentSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true
-    }
+    },
     DataOcorrencia:{
         type:Date,
         default:Date.now,
