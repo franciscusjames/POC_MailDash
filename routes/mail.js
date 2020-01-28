@@ -6,7 +6,8 @@ require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
 
-var emailBodyJson;
+let emailBody;
+let remetente;
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -31,14 +32,16 @@ router.get('/', async function(req, res, next) {
         .api('/me/mailfolders/inbox/messages')
         .top(10)
         //.select('subject,from,receivedDateTime,isRead')
-        .select('*')                                    //--MyCode--//
+        .select('*')                                //--MyCode--//
         .orderby('receivedDateTime DESC')
         .get();            
         parms.messages = result.value;            
         res.render('mail', parms);
         
-        emailBodyJson = result.value[0].body.content;   //--MyCode--//        
-        //console.log('BODY: ', emailBodyJson);         //--MyCode--//                          
+        emailBody = result.value[0].body.content;   //--MyCode--//  
+        remetente = result.value[0].from.emailAddress.address;   //--MyCode--//        
+        //console.log('emailBody: ', emailBody);      //--MyCode--//
+        //console.log('remetente: ', remetente);      //--MyCode--// 
 
       } catch (err) {
         parms.message = 'Error retrieving messages';
@@ -47,11 +50,12 @@ router.get('/', async function(req, res, next) {
         res.render('error', parms);
       }
       //EMAIL BODY TO JSON      
-      //text = htmlToText.fromString(emailBodyJson); 
-      text = JSON.parse('{' + htmlToText.fromString(emailBodyJson) + '}');      
-      console.log('EmailBody: ', text);         
+      //parsedEmail = htmlToText.fromString(emailBody); 
+      parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');     
+      parsedEmail.Remetente = remetente; 
+      console.log('parsedEmail: ', parsedEmail);         
       //console.log(typeof(text));
-      //GRAVA EMAIL INCIDENT NO BANCO
+      //GRAVA EMAIL_INCIDENT NO BANCO: PRIMEIRO EMAIL DA LISTA 
       
 
     } else {
