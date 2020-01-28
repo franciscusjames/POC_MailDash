@@ -11,6 +11,11 @@ const IncidentSchema = new mongoose.Schema({
         required:true,
         trim:true
     },
+    Remetente:{
+        type:String,
+        required:true,
+        trim:true
+    }
     DataOcorrencia:{
         type:Date,
         default:Date.now,
