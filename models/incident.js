@@ -21,8 +21,8 @@ const IncidentSchema = new mongoose.Schema({
         required:true
     },
     Prioridade:{
-    type:String,
-    required:true
+        type:String,
+        required:true
     },
     Categoria:{
         type:String,
@@ -40,6 +40,14 @@ const IncidentSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true
+    },
+    Assunto:{
+        type:String, 
+        required:true
+    },
+    Fechado:{
+        type:Boolean, 
+        required:true
     }
 }, {
     timestamps: true

@@ -7,6 +7,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const authorize = require('./routes/authorize');
 const mail = require('./routes/mail');
+const mailOut = require('./routes/mailOut');
 const mongoose = require('mongoose');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/authorize', authorize);
 app.use('/mail', mail);
+app.use('/mailOut', mailOut);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

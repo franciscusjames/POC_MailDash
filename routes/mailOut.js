@@ -13,8 +13,7 @@ let isRead;
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
-    let parms = { title: 'Inbox', active: { inbox: true } };
-    //let parmsOut = { title: 'Outbox', active: { outbox: true } };
+    let parms = { title: 'Outbox', active: { outbox: true } };
   
     const accessToken = await authHelper.getAccessToken(req.cookies, res);
     const userName = req.cookies.graph_user_name;
@@ -29,27 +28,27 @@ router.get('/', async function(req, res, next) {
         }
       });
 
-//CAIXA DE ENTRADA
+//CAIXA DE SAIDA
       try {
-        // Get the 3 newest messages from inbox
+        // Get the 10 newest messages from outbox
         const result = await client
-        .api('/me/mailfolders/inbox/messages')
+        .api('/me/mailfolders/sentitems/messages')
         .top(10)
         //.select('subject,from,receivedDateTime,isRead')
         .select('*')                               
-        .orderby('receivedDateTime DESC')
+        //.orderby('receivedDateTime DESC')
         .get();            
         parms.messages = result.value;            
-        res.render('mail', parms);
+        res.render('mailOut', parms);
         
         //PEGA DADOS DO EMAIL PARA GRAVAR NO BANCO
-        // emailBodyIn = result.value[0].body.content;   
-        // remetenteIn = result.value[0].from.emailAddress.address;          
-        // assuntoIn   = result.value[0].subject;  
-        // isRead    = result.value[0].isRead;
-        // console.log('emailBodyIn: ', emailBodyIn);     
-        // console.log('remetenteIn: ', remetenteIn);      
-        // console.log('assuntoIn: ', assuntoIn);
+        // emailBodyOut = result.value[0].body.content;   
+        // remetenteOut = result.value[0].from.emailAddress.address;          
+        // assuntoOut   = result.value[0].subject;  
+        // //isRead    = result.value[0].isRead;
+        // console.log('emailBodyOut: ', emailBodyOut);     
+        // console.log('remetenteOut: ', remetenteOut);      
+        // console.log('assuntoOut: ', assuntoOut);
         // //console.log('isRead: ', isRead);
 
       } catch (err) {
@@ -58,13 +57,18 @@ router.get('/', async function(req, res, next) {
         parms.debug = JSON.stringify(err.body, null, 2);
         res.render('error', parms);
       }
-      // //EMAIL BODY TO JSON      
-      // parsedEmailIn = htmlToText.fromString(emailBodyIn); 
-      // //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');     
-      // parsedEmailIn.Remetente = remetenteIn; 
-      // parsedEmailIn.Assunto = assuntoIn;       
-      // console.log('parsedEmailIn: ', parsedEmailIn);               
-      // //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
+      //EMAIL BODY TO JSON      
+    //   parsedEmailOut = htmlToText.fromString(emailBodyOut); 
+    //   //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');     
+    //   parsedEmailOut.Remetente = remetenteOut; 
+    //   parsedEmailOut.Assunto = assuntoOut;       
+    //   console.log('parsedEmailOut: ', parsedEmailOut);               
+    //   //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
+
+    //   let msgIn = htmlToText.fromString(parms.messages); 
+    //   let msgOut = htmlToText.fromString(parms.messagesOut); 
+    //   console.log('parms.messages: ', parms.messages[1,2]); 
+    //   console.log('parms.messagesOut: ', parms.messagesOut[1,2]); 
 
     } else {
       // Redirect to home
