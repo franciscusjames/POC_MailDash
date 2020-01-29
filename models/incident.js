@@ -1,56 +1,27 @@
 const mongoose = require('mongoose');
 
-const IncidentSchema = new mongoose.Schema({  
-    Incidente:{
-        type:String,
-        required:true,
-        unique:true
-    },
-    Autor:{
+const IncidentSchema = new mongoose.Schema({
+    remetente:{
         type:String,
         required:true,
         trim:true
     },
-    DataOcorrencia:{
+    receivedDateTime:{
         type:Date,
         default:Date.now,
         required:true
     },
-    Setor:{
-        type:String,
-        required:true
-    },
-    Prioridade:{
-        type:String,
-        required:true
-    },
-    Categoria:{
-        type:String,
-        required:true
-    },        
-    DeptoResponsavel:{
-        type:String,
-        required:true
-    },
-    Descricao:{
+    assunto:{
         type:String, 
         required:true
     },
-    Remetente:{
-        type:String,
-        required:true,
-        trim:true
-    },
-    Assunto:{
+    body:{
         type:String, 
-        required:true
-    },
-    Fechado:{
-        type:Boolean, 
         required:true
     }
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model('Incident', IncidentSchema);
+const Incident = mongoose.model('Incident', IncidentSchema);
+module.exports = Incident

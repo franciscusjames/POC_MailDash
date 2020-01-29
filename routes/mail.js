@@ -5,6 +5,8 @@ const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
+const controller = require('../controller/incident.controller')
+
 
 let emailsTratados, client;
 
