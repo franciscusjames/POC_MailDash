@@ -5,6 +5,8 @@ const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
+const controller = require('../controller/incident.controller')
+
 
 let emailBody, remetente, assunto, isRead, receivedDateTime;
 
@@ -64,8 +66,13 @@ router.get('/', async function(req, res, next) {
        parsedEmail.receivedDateTime = receivedDateTime;
        parsedEmail.assunto = assunto;   
        parsedEmail.body = textBody;
-       //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');                
-       console.log('parsedEmail: ', parsedEmail);               
+       //parsedEmail = JSON.parse('{' + htmlToText.fromString(emailBody) + '}');    
+       
+       if(isRead==false){
+        await controller.create(parsedEmail)
+      }
+
+      //  isRead ? controller.create() | 
        //GRAVA REGISTROS NO BANCO -> ('isRead' == false)
 
     } else {

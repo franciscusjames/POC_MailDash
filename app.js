@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
 const app = express();
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://admin:admin@cluster0-5tjqm.mongodb.net/test?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://admin:admin@cluster0-5tjqm.mongodb.net/Emails?retryWrites=true&w=majority', {
   useNewUrlParser: true, useUnifiedTopology: true
 });
 
