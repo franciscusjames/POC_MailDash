@@ -7,39 +7,40 @@ const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
 const controller = require('../controller/incident.controller')
 
-let emailsTratados, client;
+let emailsTratados, emailsFormatados, attachedEmailList, client;
 
 async function tratarEmails(emails) {
-  emailsTratados = emails.map((item) => {
-      return {remetente: item.from.emailAddress.address,
+  emailsTratados = emails.map( (item) => {
+      return {emailId: item.id,
+              remetente: item.from.emailAddress.address,
               assunto: item.subject,
               emailBody: item.body.content,              
               receivedDateTime: item.receivedDateTime,              
               attachments: [],
-              hasAttachments: item.hasAttachments,
-              emailId: item.id
-              //isRead: item.isRead,
-      };
-  });
-  //console.log('emailsTratados: ', emailsTratados);   
-}
-
-async function formatarEmails(emails) {
-  return emailsFormatados = emails.map((item) => {
-      return {remetente: item.remetente,
-              assunto: item.assunto,
-              emailBody: htmlToText.fromString(item.emailBody),              
-              receivedDateTime: item.receivedDateTime,              
-              attachments: item.attachments
-              //hasAttachments: item.hasAttachments,
-              //emailId: item.emailId,
-              //isRead: item.isRead,
+              hasAttachments: item.hasAttachments,              
+              isRead: item.isRead
       };
   });  
 }
 
+async function formatarEmails(emails) {
+  emailsFormatados = emails.map((item) => {
+      let textBody = htmlToText.fromString(item.emailBody)      
+      console.log('textBody: ',textBody )      
+      return {emailId: item.emailId,
+              remetente: item.remetente,
+              assunto: item.assunto,
+              emailBody: JSON.parse('{' + textBody + '}'),
+              receivedDateTime: item.receivedDateTime,              
+              hasAttachments: item.hasAttachments,
+              attachments: item.attachments,                            
+              isRead: item.isRead,
+      };
+  });    
+}
+
 async function getAnexos(emails) {
-  let attachedEmailList = emails.map(async (item) => {      
+  attachedEmailList = await emails.map(async (item) => {      
       if (item.hasAttachments) {          
           try {            
             const res = await client
@@ -50,13 +51,16 @@ async function getAnexos(emails) {
 
             attach.map((anexo) => {
                 item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                 
-            });     
+            });   
+            return item;
+
           } catch (err) {
             console.log('Erro: ', err);
           }                    
-      };
-  });
-  return attachedEmailList;
+      } else {
+        return item;
+      }
+  });    
 }
 
 // async function agruparEmails(emails) {
@@ -90,7 +94,7 @@ router.get('/', async function(req, res, next) {
         // Get the 10 newest messages from inbox
         const result = await client
         .api('/me/mailfolders/inbox/messages')
-        .top(10)
+        .top(3)
         //.select('subject,from,receivedDateTime,isRead')
         .select('*')                               
         .orderby('receivedDateTime DESC')
@@ -99,7 +103,8 @@ router.get('/', async function(req, res, next) {
         res.render('mail', parms);
                 
         //FILTRA DADOS DO EMAIL QUE SERAO UTILIZADOS
-        await tratarEmails(result.value);        
+        await tratarEmails(result.value);  
+        //console.log('emailsTratados: ', emailsTratados);        
         
       } catch (err) {
         parms.message = 'Error retrieving messages';
@@ -109,17 +114,18 @@ router.get('/', async function(req, res, next) {
       }
 
       //FORMATA EMAILSBODY (HTML->TEXT) P/ GRAVAR NO BANCO
-      let emailsFormatados = await formatarEmails(emailsTratados);
-      //console.log('emailsFormatados: ', emailsFormatados);
+      await formatarEmails(emailsTratados);
+      console.log('emailsFormatados: ', emailsFormatados);
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
-      let attachedEmailList = await getAnexos(emailsFormatados); 
-         
+      await getAnexos(emailsFormatados); 
+      //console.log('attachedEmailList: ', attachedEmailList[0]);   
+
       //AGRUPAR EMAILS COM MESMO ASSUNTO
       //let groupedEmails = await agruparEmails(attachedEmailList);
 
       //GRAVA LISTA DE EMAILS NO BANCO      
-      await controller.create(attachedEmailList)      
+      //await controller.create(attachedEmailList)      
 
     } else {
       // Redirect to home
