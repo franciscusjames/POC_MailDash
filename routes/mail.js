@@ -128,10 +128,3 @@ router.get('/', async function(req, res, next) {
 });
 
 module.exports = router;
-/*
-logar
-GET 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=e3c91d0d-0dc4-4fd4-876d-08e39f638ea4&redirect_uri=http://localhost:3000/authorize&response_type=code&scope=openid+profile+offline_access+User.Read+Mail.Read'
-
-GET  HTTP/1.1 302 Found
-Location: http://localhost/myapp/?code= AwABAAAA...cZZ6IgAA&session_state=7B29111D-C220-4263-99AB-6F6E135D75EF&state=D79E5777-702E-4260-9A62-37F75FF22CCE
-*/
