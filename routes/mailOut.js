@@ -101,7 +101,7 @@ router.get('/', async function(req, res, next) {
       
       //FORMATA EMAILSBODY (HTML->TEXT) P/ GRAVAR NO BANCO
       let emailsFormatados = await formatarEmails(emailsTratados);
-      console.log('emailsFormatados: ', emailsFormatados);
+      //console.log('emailsFormatados: ', emailsFormatados);
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       //let attachedEmailList = await getAnexos(emailsFormatados); 

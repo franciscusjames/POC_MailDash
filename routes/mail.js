@@ -7,35 +7,33 @@ const htmlToText = require('html-to-text');
 const Incident = require('../models/incident');
 const controller = require('../controller/incident.controller')
 
-
 let emailsTratados, client;
 
 async function tratarEmails(emails) {
   emailsTratados = emails.map((item) => {
-      return {emailId: item.id, 
-              emailBody: item.body.content,
-              remetente: item.from.emailAddress.address,
+      return {remetente: item.from.emailAddress.address,
               assunto: item.subject,
-              //isRead: item.isRead,
-              receivedDateTime: item.receivedDateTime,
+              emailBody: item.body.content,              
+              receivedDateTime: item.receivedDateTime,              
+              attachments: [],
               hasAttachments: item.hasAttachments,
-              attachments: []
+              emailId: item.id
+              //isRead: item.isRead,
       };
   });
   //console.log('emailsTratados: ', emailsTratados);   
 }
 
-
 async function formatarEmails(emails) {
   return emailsFormatados = emails.map((item) => {
-      return {emailId: item.emailId, 
-              emailBody: htmlToText.fromString(item.emailBody),
-              remetente: item.remetente,
+      return {remetente: item.remetente,
               assunto: item.assunto,
-              //isRead: item.isRead,
-              receivedDateTime: item.receivedDateTime,
-              hasAttachments: item.hasAttachments,
+              emailBody: htmlToText.fromString(item.emailBody),              
+              receivedDateTime: item.receivedDateTime,              
               attachments: item.attachments
+              //hasAttachments: item.hasAttachments,
+              //emailId: item.emailId,
+              //isRead: item.isRead,
       };
   });  
 }
@@ -60,6 +58,15 @@ async function getAnexos(emails) {
   });
   return attachedEmailList;
 }
+
+// async function agruparEmails(emails) {
+//   return emailsAgrupados = emails.map((item) => {
+//       //se item.assunto includes outro assunto parecido
+//       if (item.assunto) {
+
+//       }
+//   });  
+// }
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -103,16 +110,16 @@ router.get('/', async function(req, res, next) {
 
       //FORMATA EMAILSBODY (HTML->TEXT) P/ GRAVAR NO BANCO
       let emailsFormatados = await formatarEmails(emailsTratados);
-      console.log('emailsFormatados: ', emailsFormatados);
+      //console.log('emailsFormatados: ', emailsFormatados);
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       let attachedEmailList = await getAnexos(emailsFormatados); 
          
-      //AGRUPAR EMAILS COM MESMO ASSUNTO, OU FILTRAR POR ASSUNTO E DEIXAR O ULTIMO?
-      //let filteredEmails = await filtrarEmails();
+      //AGRUPAR EMAILS COM MESMO ASSUNTO
+      //let groupedEmails = await agruparEmails(attachedEmailList);
 
-      //GRAVA LISTA DE EMAILS NO BANCO
-      //await postEmails(finalEmailList); 
+      //GRAVA LISTA DE EMAILS NO BANCO      
+      await controller.create(attachedEmailList)      
 
     } else {
       // Redirect to home
@@ -121,3 +128,10 @@ router.get('/', async function(req, res, next) {
 });
 
 module.exports = router;
+/*
+logar
+GET 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=e3c91d0d-0dc4-4fd4-876d-08e39f638ea4&redirect_uri=http://localhost:3000/authorize&response_type=code&scope=openid+profile+offline_access+User.Read+Mail.Read'
+
+GET  HTTP/1.1 302 Found
+Location: http://localhost/myapp/?code= AwABAAAA...cZZ6IgAA&session_state=7B29111D-C220-4263-99AB-6F6E135D75EF&state=D79E5777-702E-4260-9A62-37F75FF22CCE
+*/

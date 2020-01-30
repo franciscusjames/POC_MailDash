@@ -1,6 +1,9 @@
 const {Incident} = require("../models");
 
-exports.create = async (mail) => {
-    const incident = new Incident(mail)
-    return await incident.save();
+exports.create = async (emails) => {    
+    console.log('EMAILS: ', emails)
+    emails.map(async (item) => { 
+        const incident = new Incident(item)
+        return await incident.save();
+    });
 }
