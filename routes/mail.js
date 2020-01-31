@@ -4,10 +4,10 @@ const authHelper = require('../helpers/auth');
 const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
-const Incident = require('../models/incident');
-const controller = require('../controller/incident.controller')
+const controller = require('../controller/email.controller')
 
 let emailsTratados, emailsFormatados, attachedEmailList, client;
+let dateTimeParm = '2020-01-30T17:30:00Z';
 
 async function tratarEmails(emails) {
   emailsTratados = emails.map( (item) => {
@@ -25,8 +25,9 @@ async function tratarEmails(emails) {
 
 async function formatarEmails(emails) {
   emailsFormatados = emails.map((item) => {
-      let textBody = htmlToText.fromString(item.emailBody)      
-      console.log('textBody: ',textBody )      
+      let textBody = htmlToText.fromString(item.emailBody)  
+      //remover email antigo, tratamento será de um a um
+      //console.log('textBody: ',textBody )      
       return {emailId: item.emailId,
               remetente: item.remetente,
               assunto: item.assunto,
@@ -40,12 +41,12 @@ async function formatarEmails(emails) {
 }
 
 async function getAnexos(emails) {
-  attachedEmailList = await emails.map(async (item) => {      
+  attachedEmailList = await emails.map((item) => {      
       if (item.hasAttachments) {          
           try {            
-            const res = await client
+            const res = Promise.resolve(client
             .api(`/me/messages/${item.emailId}/attachments/`)
-            .get();   
+            .get());   
 
             let attach = res.value;
 
@@ -63,14 +64,6 @@ async function getAnexos(emails) {
   });    
 }
 
-// async function agruparEmails(emails) {
-//   return emailsAgrupados = emails.map((item) => {
-//       //se item.assunto includes outro assunto parecido
-//       if (item.assunto) {
-
-//       }
-//   });  
-// }
 
 /* GET /mail */
 router.get('/', async function(req, res, next) {
@@ -93,15 +86,17 @@ router.get('/', async function(req, res, next) {
       try {
         // Get the 10 newest messages from inbox
         const result = await client
-        .api('/me/mailfolders/inbox/messages')
-        .top(3)
+        .api(`/me/mailfolders/inbox/messages`)
+        //.top(3)
         //.select('subject,from,receivedDateTime,isRead')
-        .select('*')                               
+        .select('*')                                       
         .orderby('receivedDateTime DESC')
+        .filter(`receivedDateTime ge ${dateTimeParm}`) //traz a partir dessa data/hora
         .get();            
         parms.messages = result.value;            
-        res.render('mail', parms);
-                
+        res.render('mail', parms);                        
+        //console.log('result.value: ', result.value);
+
         //FILTRA DADOS DO EMAIL QUE SERAO UTILIZADOS
         await tratarEmails(result.value);  
         //console.log('emailsTratados: ', emailsTratados);        
@@ -113,19 +108,16 @@ router.get('/', async function(req, res, next) {
         res.render('error', parms);
       }
 
-      //FORMATA EMAILSBODY (HTML->TEXT) P/ GRAVAR NO BANCO
+      //FORMATA EMAILSBODY (HTML->TEXT->JSON) P/ GRAVAR NO BANCO
       await formatarEmails(emailsTratados);
-      console.log('emailsFormatados: ', emailsFormatados);
+      //console.log('emailsFormatados: ', emailsFormatados);
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       await getAnexos(emailsFormatados); 
-      //console.log('attachedEmailList: ', attachedEmailList[0]);   
-
-      //AGRUPAR EMAILS COM MESMO ASSUNTO
-      //let groupedEmails = await agruparEmails(attachedEmailList);
+      //console.log('attachedEmailList: ', attachedEmailList);   
 
       //GRAVA LISTA DE EMAILS NO BANCO      
-      //await controller.create(attachedEmailList)      
+      await controller.save(attachedEmailList)      
 
     } else {
       // Redirect to home

@@ -1,22 +1,21 @@
-import * as knex from 'knex';
-import { prototype } from 'events';
+const knex = require('knex');
 
 class KnexSingleton {
 
     conn;
     static instance;
 
-    constructor(host, user, port, password, database) {
+    constructor() {
         
         this.conn = knex({
             client: 'mysql2',
             version: '5.7',
             connection: {
-                host : host,
-                user : user,
-                port : port,
-                password : password,
-                database : database
+                host : 'poc-database.ckuyozcu3sos.us-east-1.rds.amazonaws.com',
+                user : 'admin',
+                port : 3306,
+                password : 'password01',
+                database : 'poc_example'
             },
             debug: true,
             pool: {
@@ -27,14 +26,14 @@ class KnexSingleton {
         });
     }
 
-    static getInstance(host, user, port, password, database) {
+    static getInstance() {
 
         if (!KnexSingleton.instance) {
 
-            KnexSingleton.instance = new KnexSingleton(host, user, port, password, database);
+            KnexSingleton.instance = new KnexSingleton();
         }
         return KnexSingleton.instance;
     }
 }
 
-export { KnexSingleton }
+module.exports = KnexSingleton;
