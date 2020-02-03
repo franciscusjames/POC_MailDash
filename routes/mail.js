@@ -4,10 +4,12 @@ const authHelper = require('../helpers/auth');
 const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
-const controller = require('../controller/email.controller')
+const controller = require('../controller/email.controller');
+const fs = require('fs');
+const PDFParser = require("pdf2json");
 
-let emailsTratados, emailsFormatados, attachedEmailList, client;
-let dateTimeParm = '2020-01-30T17:30:00Z';
+let client, emailsTratados, emailsFormatados, attachedEmailList, finalEmailList;
+let dateTimeParm = '2020-02-03T17:30:00Z';
 
 async function tratarEmails(emails) {
   emailsTratados = emails.map( (item) => {
@@ -41,23 +43,57 @@ async function formatarEmails(emails) {
 }
 
 async function getAnexos(emails) {
-  attachedEmailList = await emails.map((item) => {      
+  attachedEmailList = await emails.map(async (item) => {      
       if (item.hasAttachments) {          
           try {            
-            const res = Promise.resolve(client
+            const res = await Promise.resolve(client
             .api(`/me/messages/${item.emailId}/attachments/`)
             .get());   
 
             let attach = res.value;
-
+              
             attach.map((anexo) => {
-                item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                 
+                item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                  
             });   
             return item;
 
           } catch (err) {
             console.log('Erro: ', err);
           }                    
+      } else {
+        return item;
+      }
+  });    
+}
+
+async function parseAnexos(emails) {  
+  let isPdF = emails[0].attachments.fileName.includes('.pdf');
+  console.log('isPDF1: ', isPdF)
+  finalEmailList = await emails.map(async (item) => {      
+      if (item.hasAttachments) {
+          let isPdF = item.attachments.fileName.includes('.pdf');
+          let isExcel = item.attachments.fileName.includes('.xls' || '.xlsx');
+          console.log('isPDF: ', isPdF)
+          if (isPdF) {
+            console.log('entrou PDF!')
+            let pdfParser = new PDFParser();
+            let fileContent = item.attachments.fileContent;
+
+            pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
+            pdfParser.on("pdfParser_dataReady", pdfData => {              
+                let output = res.json('{' + pdfParser.getRawTextContent() + '}');
+                console.log('PDF2JSON_OUTPUT: ', output);
+            });
+
+            await Promise.resolve(pdfParser.loadPDF(fileContent));
+            return item;
+          }
+
+          if (isExcel) {
+            console.log('CAIU NO XLS...');
+            return item;
+           }                      
+
       } else {
         return item;
       }
@@ -87,11 +123,11 @@ router.get('/', async function(req, res, next) {
         // Get the 10 newest messages from inbox
         const result = await client
         .api(`/me/mailfolders/inbox/messages`)
-        //.top(3)
+        .top(1)
         //.select('subject,from,receivedDateTime,isRead')
         .select('*')                                       
         .orderby('receivedDateTime DESC')
-        .filter(`receivedDateTime ge ${dateTimeParm}`) //traz a partir dessa data/hora
+        //.filter(`receivedDateTime ge ${dateTimeParm}`) //traz a partir dessa data/hora
         .get();            
         parms.messages = result.value;            
         res.render('mail', parms);                        
@@ -114,10 +150,14 @@ router.get('/', async function(req, res, next) {
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       await getAnexos(emailsFormatados); 
-      //console.log('attachedEmailList: ', attachedEmailList);   
+      console.log('attachedEmailList: ', attachedEmailList);   
+
+      //PEGA ANEXOS DOS EMAILS, SE HOUVER
+      await parseAnexos(attachedEmailList); 
+      console.log('finalEmailList: ', finalEmailList);   
 
       //GRAVA LISTA DE EMAILS NO BANCO      
-      await controller.save(attachedEmailList)      
+      //await controller.save(finalEmailList)      
 
     } else {
       // Redirect to home

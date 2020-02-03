@@ -2,24 +2,25 @@ const isNullOrUndefined = require("util");
 
 class Email {
 
-    emailId;
-    remetente;
-    assunto;
-    //emailBody
-      incidente;
-      autor;
-      dataOcorrencia;
-      setor;
-      prioridade;
-      categoria;
-      deptoResponsavel;
-      descricao;
-    receivedDateTime;
-    hasAttachments;
-    attachments;
-    isRead;
+    // emailId;
+    // remetente;
+    // assunto;
+    // //emailBody
+    //   incidente;
+    //   autor;
+    //   dataOcorrencia;
+    //   setor;
+    //   prioridade;
+    //   categoria;
+    //   deptoResponsavel;
+    //   descricao;
+    // receivedDateTime;
+    // hasAttachments;
+    // attachments;
+    // isRead;
 
-    constructor(emailId, remetente, assunto, emailBody, receivedDateTime, hasAttachments, attachments, isRead) {
+    //constructor(emailId, remetente, assunto, emailBody, receivedDateTime, hasAttachments, attachments, isRead) {
+    constructor() {
         this.emailId = emailId;
         this.remetente = remetente;
         this.assunto = assunto;
