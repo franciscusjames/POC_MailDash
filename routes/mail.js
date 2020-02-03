@@ -57,7 +57,7 @@ async function getAnexos(emails) {
             let attach = res.value;
             attach.map((anexo) => {
                 fs.writeFileSync(`${dir}/${anexo.name}`, anexo.contentBytes, {encoding: 'base64'})
-                //item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                  
+                item.attachments.push({fileName:anexo.name});                  
             });   
             return item;
 
@@ -73,33 +73,31 @@ async function getAnexos(emails) {
 
 async function parseAnexos(emails) { 
   let parsedAnexos = await emails.map(async (item) => {      
-      if (item.hasAttachments) {
-          let isPdF = item.attachments[0].fileName.includes('.pdf');
-          let isExcel = item.attachments[0].fileName.includes('.xls' || '.xlsx');
-          console.log('isPDF: ', isPdF)
-          if (isPdF) {
-            console.log('entrou PDF!')
-            let pdfParser = new PDFParser();
-            let fileContent = item.attachments[0].fileContent;
-
-            //fs.writeFileSync(`${item.attachments[0].fileName}`, item.attachments[0].fileContent, {encoding: 'base64'})
-            //console.log('PDF: ', pdf)
-
-            pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
-            pdfParser.on("pdfParser_dataReady", pdfData => {              
-                let output = res.json('{' + pdfParser.getRawTextContent() + '}');
-                console.log('PDF2JSON_OUTPUT: ', output);
-            });
-
-            pdfParser.loadPDF(`./Anexos/${item.assunto}/${item.attachments}`);
-            return item;
-          }
-
-          if (isExcel) {
-            console.log('CAIU NO XLS...');
-            return item;
-           }                      
-
+      if (item.hasAttachments) {          
+          item.attachments.map((anexo) => {
+            let isPdF   = anexo.fileName.includes('.pdf');
+            let isExcel = anexo.fileName.includes('.xls' || '.xlsx');
+            console.log('isPDF: ', isPdF)
+            if (isPdF) {
+              console.log('entrou PDF!')
+              let pdfParser = new PDFParser();
+  
+              pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
+              pdfParser.on("pdfParser_dataReady", pdfData => {              
+                  //let output = json('{' + pdfParser.getRawTextContent() + '}');
+                  let output = JSON.parse('{' + pdfParser.getRawTextContent() + '}');
+                  console.log('PDF2JSON_OUTPUT: ', output);
+              });
+  
+              pdfParser.loadPDF(`./Anexos/${item.assunto}/${anexo.fileName}`);
+              return item;
+            }
+  
+            if (isExcel) {
+              console.log('CAIU NO XLS...');
+              return item;
+             }   
+          });
       } else {
         return item;
       }
@@ -160,7 +158,7 @@ router.get('/', async function(req, res, next) {
       //console.log('attachedEmailList: ', attachedEmailList);   
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
-      //let finalEmailList = await parseAnexos(attachedEmailList); 
+      let finalEmailList = await parseAnexos(attachedEmailList); 
       //console.log('finalEmailList: ', finalEmailList);   
 
       //GRAVA LISTA DE EMAILS NO BANCO      
