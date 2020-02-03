@@ -5,10 +5,10 @@ const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const controller = require('../controller/email.controller');
-const fs = require('fs');
+const fs = require('fs-extra');
 const PDFParser = require("pdf2json");
 
-let client, emailsTratados, emailsFormatados, attachedEmailList, finalEmailList;
+let client, emailsTratados;
 let dateTimeParm = '2020-02-03T17:30:00Z';
 
 async function tratarEmails(emails) {
@@ -26,7 +26,7 @@ async function tratarEmails(emails) {
 }
 
 async function formatarEmails(emails) {
-  emailsFormatados = emails.map((item) => {
+  let formatList = emails.map((item) => {
       let textBody = htmlToText.fromString(item.emailBody)  
       //remover email antigo, tratamento será de um a um
       //console.log('textBody: ',textBody )      
@@ -40,20 +40,24 @@ async function formatarEmails(emails) {
               isRead: item.isRead,
       };
   });    
+  return formatList;
 }
 
 async function getAnexos(emails) {
-  attachedEmailList = await emails.map(async (item) => {      
+  let anexos =  emails.map(async (item) => {   
       if (item.hasAttachments) {          
-          try {            
-            const res = await Promise.resolve(client
+          try { 
+            const dir = `./Anexos/${item.assunto}`;
+            fs.ensureDirSync(dir);
+            
+            const res = await client
             .api(`/me/messages/${item.emailId}/attachments/`)
-            .get());   
+            .get();   
 
             let attach = res.value;
-              
             attach.map((anexo) => {
-                item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                  
+                fs.writeFileSync(`${dir}/${anexo.name}`, anexo.contentBytes, {encoding: 'base64'})
+                //item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                  
             });   
             return item;
 
@@ -63,21 +67,23 @@ async function getAnexos(emails) {
       } else {
         return item;
       }
-  });    
+  }); 
+  return Promise.all(anexos);   
 }
 
-async function parseAnexos(emails) {  
-  let isPdF = emails[0].attachments.fileName.includes('.pdf');
-  console.log('isPDF1: ', isPdF)
-  finalEmailList = await emails.map(async (item) => {      
+async function parseAnexos(emails) { 
+  let parsedAnexos = await emails.map(async (item) => {      
       if (item.hasAttachments) {
-          let isPdF = item.attachments.fileName.includes('.pdf');
-          let isExcel = item.attachments.fileName.includes('.xls' || '.xlsx');
+          let isPdF = item.attachments[0].fileName.includes('.pdf');
+          let isExcel = item.attachments[0].fileName.includes('.xls' || '.xlsx');
           console.log('isPDF: ', isPdF)
           if (isPdF) {
             console.log('entrou PDF!')
             let pdfParser = new PDFParser();
-            let fileContent = item.attachments.fileContent;
+            let fileContent = item.attachments[0].fileContent;
+
+            //fs.writeFileSync(`${item.attachments[0].fileName}`, item.attachments[0].fileContent, {encoding: 'base64'})
+            //console.log('PDF: ', pdf)
 
             pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
             pdfParser.on("pdfParser_dataReady", pdfData => {              
@@ -85,7 +91,7 @@ async function parseAnexos(emails) {
                 console.log('PDF2JSON_OUTPUT: ', output);
             });
 
-            await Promise.resolve(pdfParser.loadPDF(fileContent));
+            pdfParser.loadPDF(`./Anexos/${item.assunto}/${item.attachments}`);
             return item;
           }
 
@@ -97,7 +103,8 @@ async function parseAnexos(emails) {
       } else {
         return item;
       }
-  });    
+  });   
+  return Promise.all(parsedAnexos); 
 }
 
 
@@ -145,16 +152,16 @@ router.get('/', async function(req, res, next) {
       }
 
       //FORMATA EMAILSBODY (HTML->TEXT->JSON) P/ GRAVAR NO BANCO
-      await formatarEmails(emailsTratados);
+      let emailsFormatados = await formatarEmails(emailsTratados);
       //console.log('emailsFormatados: ', emailsFormatados);
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
-      await getAnexos(emailsFormatados); 
-      console.log('attachedEmailList: ', attachedEmailList);   
+      let attachedEmailList =  await getAnexos(emailsFormatados); 
+      //console.log('attachedEmailList: ', attachedEmailList);   
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
-      await parseAnexos(attachedEmailList); 
-      console.log('finalEmailList: ', finalEmailList);   
+      //let finalEmailList = await parseAnexos(attachedEmailList); 
+      //console.log('finalEmailList: ', finalEmailList);   
 
       //GRAVA LISTA DE EMAILS NO BANCO      
       //await controller.save(finalEmailList)      
