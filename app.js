@@ -12,10 +12,6 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// MongoDB Connection
-mongoose.connect('mongodb+srv://admin:admin@cluster0-5tjqm.mongodb.net/Emails?retryWrites=true&w=majority', {
-  useNewUrlParser: true, useUnifiedTopology: true
-});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

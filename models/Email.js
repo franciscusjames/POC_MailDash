@@ -1,4 +1,4 @@
-const isNullOrUndefined = require("util");
+const {isNullOrUndefined} = require("util");
 
 class Email {
 
@@ -59,3 +59,5 @@ class Email {
     }
 
 }
+
+module.exports = Email

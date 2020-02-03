@@ -7,7 +7,7 @@ exports.save = async (emails) => {
     const persistence = new Persistence();
 
     emails.map(async (item) => {
-        let email = new Email.constructor(item.emailId, 
+        let email = new Email(item.emailId, 
                                 item.remetente, 
                                 item.assunto, 
                                 item.emailBody, 
@@ -18,6 +18,6 @@ exports.save = async (emails) => {
         )
         console.log('DB ITEM: ', item);
         console.log('DB EMAIL: ', email);
-        //let res = await persistence.insertEmail(email);
+        let res = await persistence.insertEmail(email);
     });
 }
