@@ -43,7 +43,10 @@ async function parseAnexos(emails) {
 				}  
 			});	                    
         }
-    });   
+    });  
+        fs.unlink(`./Anexos/${item.assunto}`, (err) => {
+        	if (err) { console.error(err); return; }
+        }) 
     console.log('parsedAnexos: ', parsedAnexos);
     return parsedAnexos; 
 }
