@@ -34,7 +34,7 @@ class Email {
         this.descricao = emailBody.Descricao;
         this.receivedDateTime = receivedDateTime;
         this.hasAttachments = hasAttachments;
-        this.attachments = attachments;
+        //this.attachments = attachments;
         this.isRead = isRead;
 
         this.validate();
@@ -54,8 +54,8 @@ class Email {
         if (isNullOrUndefined(this.descricao))        throw Error('emailBody.Descricao é obrigatório.')
         if (isNullOrUndefined(this.receivedDateTime)) throw Error('receivedDateTime é obrigatório.')
         if (isNullOrUndefined(this.hasAttachments))   throw Error('hasAttachments é obrigatório.')
-        if (this.hasAttachments 
-            && this.attachments.lenght == 0)          throw Error('Este email contém attachments.')
+        // if (this.hasAttachments 
+        //     && this.attachments.lenght == 0)          throw Error('Este email contém attachments.')
         if (isNullOrUndefined(this.isRead))           throw Error('isRead é obrigatório.')
     }
 

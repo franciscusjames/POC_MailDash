@@ -2,10 +2,11 @@ import { isNullOrUndefined } from "util";
 
 class Attachment {
 
-    fileName;
-    fileContent;
+    // fileName;
+    // fileContent;
 
-    constructor(fileName, fileContent) {
+    // constructor(fileName, fileContent) {
+    constructor() {
         this.fileName = fileName;
         this.fileContent = fileContent;
 
@@ -18,3 +19,5 @@ class Attachment {
     }
 
 }
+
+module.exports = Attachment
