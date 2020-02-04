@@ -8,6 +8,7 @@
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^2.0.0",
     "@types/node": "^13.5.2",
+    "convert-excel-to-json": "^1.6.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
