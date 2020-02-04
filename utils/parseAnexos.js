@@ -1,8 +1,11 @@
 const PDFParser = require("pdf2json");
 const excelToJson = require('convert-excel-to-json');
+const fs = require('fs-extra');
 
-async function parseAnexos(emails) { 
-    let parsedAnexos = await emails.filter(async (item) => {      
+async function parseAnexos(emails) {
+    console.log(emails) 
+    let parsedAnexos = await emails.filter(async (item) => {
+        console.log(item)      
         if (!item.hasAttachments) {          
 			return item;
 		} else {
@@ -20,21 +23,27 @@ async function parseAnexos(emails) {
 					  return await anexo;
 					});									  				  				    
                 }
-      
+                
+   
+
                 if (anexo.fileName.includes('.xls' || '.xlsx')) {                    					
 					const result = excelToJson({ 
 						sourceFile: `./Anexos/${item.assunto}/${anexo.fileName}`
 					});
 					anexo.fileContent = result.Plan1;					
 					return await anexo;
-				}  
+                }  
+
 			});	                    
         }
     });  
-        fs.unlink(`./Anexos/${item.assunto}`, (err) => {
-        	if (err) { console.error(err); return; }
-        }) 
+
     return parsedAnexos; 
 }
 
-module.exports = {parseAnexos}
+async function deleteDir(assunto) {
+    fs.unlink(`./Anexos/${assunto}`, (err) => {
+        if (err) { console.error(err); return; }
+    }) 
+}
+module.exports = {parseAnexos,deleteDir}

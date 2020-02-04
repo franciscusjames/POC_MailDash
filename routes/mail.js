@@ -5,7 +5,7 @@ const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const controller = require('../controller/email.controller');
-const {parseAnexos} = require('../utils/parseAnexos')
+const {parseAnexos,deleteDir} = require('../utils/parseAnexos')
 const fs = require('fs-extra');
 
 
@@ -129,8 +129,10 @@ router.get('/', async function(req, res, next) {
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       let finalEmailList = await parseAnexos(attachedEmailList); 
-      console.log('finalEmailList: ',  await Promise.all(finalEmailList) );   
-
+      
+      finalEmailList.forEach(async item => {
+        await deleteDir(item.assunto)
+      })
       //GRAVA LISTA DE EMAILS NO BANCO      
       //await controller.save(finalEmailList)      
 
