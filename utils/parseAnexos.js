@@ -16,13 +16,7 @@ async function parseAnexos(emails) {
 					
 					pdfParser.on("pdfParser_dataReady", async pdfData => {              					  
                       let output = JSON.parse('{' + pdfParser.getRawTextContent().split('-')[0] + '}');					  
-					  anexo.fileContent = output;					  
-					  console.log('anexoPDF: ', anexo);				
-					  
-					//   fs.unlink(`./Anexos/${item.assunto}/${anexo.fileName}`, (err) => {
-					// 	if (err) { console.error(err); return; }
-					//   })
-
+					  anexo.fileContent = output;
 					  return await anexo;
 					});									  				  				    
                 }
@@ -31,14 +25,7 @@ async function parseAnexos(emails) {
 					const result = excelToJson({ 
 						sourceFile: `./Anexos/${item.assunto}/${anexo.fileName}`
 					});
-
-					anexo.fileContent = result.Plan1;
-					
-					// fs.unlink(`./Anexos/${item.assunto}/${anexo.fileName}`, (err) => {
-					// 	if (err) { console.error(err); return; }
-					// })
-
-					console.log('anexoXLS: ', anexo);					
+					anexo.fileContent = result.Plan1;					
 					return await anexo;
 				}  
 			});	                    
@@ -47,7 +34,6 @@ async function parseAnexos(emails) {
         fs.unlink(`./Anexos/${item.assunto}`, (err) => {
         	if (err) { console.error(err); return; }
         }) 
-    console.log('parsedAnexos: ', parsedAnexos);
     return parsedAnexos; 
 }
 
