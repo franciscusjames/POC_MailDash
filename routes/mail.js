@@ -125,16 +125,16 @@ router.get('/', async function(req, res, next) {
 
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       let attachedEmailList =  await getAnexos(emailsFormatados); 
-      //console.log('attachedEmailList: ', attachedEmailList);   
-
+      // console.log('attachedEmailList: ', attachedEmailList);   
+      
       //PEGA ANEXOS DOS EMAILS, SE HOUVER
       let finalEmailList = await parseAnexos(attachedEmailList); 
-      
+      // console.log('finalEmailList:',finalEmailList[0].attachments)
       finalEmailList.forEach(async item => {
         await deleteDir(item.assunto)
       })
       //GRAVA LISTA DE EMAILS NO BANCO      
-      //await controller.save(finalEmailList)      
+      await controller.save(finalEmailList)      
 
     } else {
       // Redirect to home

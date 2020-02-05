@@ -1,12 +1,12 @@
-import { isNullOrUndefined } from "util";
+const {isNullOrUndefined} = require("util");
 
 class Attachment {
 
-    // fileName;
-    // fileContent;
+    fileName;
+    fileContent;
 
     // constructor(fileName, fileContent) {
-    constructor() {
+    constructor(fileName,fileContent) {
         this.fileName = fileName;
         this.fileContent = fileContent;
 
