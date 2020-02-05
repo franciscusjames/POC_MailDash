@@ -36,22 +36,11 @@ class Persistence {
     }
 
     anexoData =  (attachments,emailId) => {
-        if(attachments.fileName.includes('.pdf')){
-            console.log('pdf')
-            // return{
-            //     "emailId":emailId,
-            //     "fileName":attachments.fileName,
-            //     "fileContent":attachments.fileContent 
-            //  }
-        } else{
-                return{
-                    "emailId":emailId,
-                    "fileName":attachments.fileName,
-                    "fileContent":JSON.stringify(attachments.fileContent) 
-                }
-
+        return{
+            "emailId":emailId,
+            "fileName":attachments.fileName,
+            "fileContent":JSON.stringify(attachments.fileContent) 
         }
-
     }
 }
 
