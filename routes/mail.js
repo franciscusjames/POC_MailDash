@@ -127,12 +127,13 @@ router.get('/', async function(req, res, next) {
       let attachedEmailList =  await getAnexos(emailsFormatados); 
       //console.log('attachedEmailList: ', attachedEmailList);   
 
-      //PEGA ANEXOS DOS EMAILS, SE HOUVER
+      //TRANSFORMA O CONTEUDO DOR ANEXOS EM JSON
       let finalEmailList = await parseAnexos(attachedEmailList); 
+      console.log('finalEmailList: ', finalEmailList[0].attachments[1].fileContent); 
       
-      finalEmailList.forEach(async item => {
-        await deleteDir(item.assunto)
-      })
+      //DELETA O DIRETÓRIO CONTENDO OS ANEXOS
+      //await deleteDir(finalEmailList);      
+
       //GRAVA LISTA DE EMAILS NO BANCO      
       //await controller.save(finalEmailList)      
 

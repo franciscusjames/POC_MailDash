@@ -1,4 +1,4 @@
-import { isNullOrUndefined } from "util";
+const {isNullOrUndefined} = require("util");
 
 class Attachment {
 
