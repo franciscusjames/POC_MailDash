@@ -135,7 +135,7 @@ router.get('/', async function(req, res, next) {
       //await deleteDir(finalEmailList);      
 
       //GRAVA LISTA DE EMAILS NO BANCO      
-      //await controller.save(finalEmailList)      
+      await controller.save(finalEmailList)      
 
     } else {
       // Redirect to home

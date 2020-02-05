@@ -14,17 +14,17 @@ exports.save = async (emails) => {
                               item.emailBody, 
                               item.receivedDateTime, 
                               item.hasAttachments, 
-                              //item.attachments, 
+                              item.attachments, 
                               item.isRead
         )
-        // console.log('DB ITEM: ', item);
+        console.log('DB ITEM: ', item);
         // console.log('DB EMAIL: ', email);
         let res = await persistence.insertEmail(email);
 
         if (item.hasAttachments) {
             item.attachments.map(async (anexo) => {
                 let attachment = new Attachment(anexo.fileName, anexo.fileContent);
-                let att = await persistence.insertAnexo(attachment);
+                let att = await persistence.insertAnexo(attachment,item.emailId);
             })            
         }
 
