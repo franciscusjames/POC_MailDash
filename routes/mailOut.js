@@ -14,7 +14,7 @@ async function tratarEmails(emails) {
               remetente: item.from.emailAddress.address,
               assunto: item.subject,
               //isRead: item.isRead,
-              sentDateTime: item.sentDateTime,
+              dataChegadaOuEnvio: item.sentDateTime,
               hasAttachments: item.hasAttachments,
               attachments: []
       };
@@ -30,7 +30,7 @@ async function formatarEmails(emails) {
               remetente: item.remetente,
               assunto: item.assunto,
               //isRead: item.isRead,
-              sentDateTime: item.sentDateTime,
+              dataChegadaOuEnvio: item.dataChegadaOuEnvio,
               hasAttachments: item.hasAttachments,
               attachments: item.attachments
       };

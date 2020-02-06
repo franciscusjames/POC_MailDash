@@ -15,10 +15,11 @@ let dateTimeParm = '2020-02-03T17:30:00Z';
 async function tratarEmails(emails) {
   emailsTratados = emails.map( (item) => {
       return {emailId: item.id,
+              tipoEmail: 'inbox',
               remetente: item.from.emailAddress.address,
               assunto: item.subject,
               emailBody: item.body.content,              
-              receivedDateTime: item.receivedDateTime,              
+              dataChegadaOuEnvio: item.receivedDateTime,              
               attachments: [],
               hasAttachments: item.hasAttachments,              
               isRead: item.isRead
@@ -33,10 +34,11 @@ async function formatarEmails(emails) {
 	  textBody.split('-' || '_')[0];
       //console.log('textBody: ',textBody )      
       return {emailId: item.emailId,
+              tipoEmail: item.tipoEmail,
               remetente: item.remetente,
               assunto: item.assunto,
               emailBody: JSON.parse('{' + textBody + '}'),
-              receivedDateTime: item.receivedDateTime,              
+              dataChegadaOuEnvio: item.dataChegadaOuEnvio,              
               hasAttachments: item.hasAttachments,
               attachments: item.attachments,                            
               isRead: item.isRead,
@@ -129,7 +131,7 @@ router.get('/', async function(req, res, next) {
 
       //TRANSFORMA O CONTEUDO DOR ANEXOS EM JSON
       let finalEmailList = await parseAnexos(attachedEmailList); 
-      console.log('finalEmailList: ', finalEmailList[0].attachments[1].fileContent); 
+      //console.log('finalEmailList: ', finalEmailList[0].attachments[1].fileContent); 
       
       //DELETA O DIRETÓRIO CONTENDO OS ANEXOS
       //await deleteDir(finalEmailList);      

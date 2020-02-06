@@ -9,6 +9,7 @@ class Persistence {
     emailData = (emailData) =>{
         return{
             "emailId":emailData.emailId,
+            "tipoEmail": emailData.tipoEmail,
             "remetente":emailData.remetente,
             "assunto":emailData.assunto,
             "incidente":emailData.incidente,
@@ -19,7 +20,7 @@ class Persistence {
             "categoria":emailData.categoria,
             "deptoResponsavel":emailData.deptoResponsavel,
             "descricao":emailData.descricao,
-            "receivedDateTime":emailData.receivedDateTime,
+            "receivedDateTime":emailData.dataChegadaOuEnvio,
             "hasAttachments":emailData.hasAttachments,
             "isRead":emailData.isRead   
         }

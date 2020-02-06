@@ -7,10 +7,11 @@ exports.save = async (emails) => {
 
     emails.map(async (item) => {
         let email = new Email(item.emailId, 
+                              item.tipoEmail,
                               item.remetente, 
                               item.assunto, 
                               item.emailBody, 
-                              item.receivedDateTime, 
+                              item.dataChegadaOuEnvio, 
                               item.hasAttachments, 
                               item.attachments, 
                               item.isRead
