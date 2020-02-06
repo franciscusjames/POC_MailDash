@@ -28,7 +28,7 @@ async function parseAnexos(emails) {
                     
                     anexo.fileContent = JSON.parse('{' + fs.readFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`) + '}');
                     console.log('fileContent: ', anexo);
-                }                
+                } 
    
 
                 if (anexo.fileName.includes('.xls' || '.xlsx')) { 
@@ -55,7 +55,25 @@ async function parseAnexos(emails) {
 async function deleteAnexosFolders(emailList) {
     emailList.forEach( async email => {        
         if (email.hasAttachments) {
-            await fs.rmdir(`./Anexos/${email.assunto}`, (err) => {
+
+            await email.attachments.forEach(async anexo => {
+                if (anexo.fileName.includes('.pdf' || '.PDF')) {
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}' : `, err); return ;}                        
+                    });     console.log('DELETOU TXT')
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }                    
+                    });     console.log('DELETOU PDF')
+                } else {
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }                    
+                    });     console.log('DELETOU XLS')
+                }
+            });
+            
+
+            await fs.rmdir(`./Anexos/${email.assunto.replace(':', '')}`, (err) => {
+                console.log('DELETANDO FOLDER')
                 if (err) { console.error('Erro ao deletar diretório de anexos: ', err); return; }
             });
         }                
