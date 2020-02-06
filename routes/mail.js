@@ -50,11 +50,8 @@ async function formatarEmails(emails) {
 async function getAnexos(emails) {
   let anexos =  emails.map(async (item) => {   
       if (item.hasAttachments) {                
-          try {             
-            if ( item.assunto.includes(':') ) {
-              item.assunto = item.assunto.replace(':', '');
-            }  
-            const dir = `./Anexos/${item.assunto}`;
+          try {                          
+            const dir = `./Anexos/${item.assunto.replace(':', '')}`;
             fs.ensureDirSync(dir);
             
             const res = await client
@@ -133,10 +130,10 @@ router.get('/', async function(req, res, next) {
 
       //TRANSFORMA O CONTEUDO DOR ANEXOS EM JSON
       let finalEmailList = await parseAnexos(attachedEmailList); 
-      //console.log('finalEmailList: ', finalEmailList[0].attachments[1].fileContent); 
+      console.log('finalEmailList: ', finalEmailList); 
       
       //DELETA OS DIRETÓRIOS DOS ANEXOS
-      await deleteAnexosFolders(finalEmailList);      
+      //await deleteAnexosFolders(finalEmailList);      
 
       //GRAVA LISTA DE EMAILS NO BANCO      
       //await controller.save(finalEmailList)      

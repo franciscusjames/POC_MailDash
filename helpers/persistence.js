@@ -20,9 +20,11 @@ class Persistence {
             "categoria":emailData.categoria,
             "deptoResponsavel":emailData.deptoResponsavel,
             "descricao":emailData.descricao,
-            "receivedDateTime":emailData.dataChegadaOuEnvio,
+            "divergencia":emailData.divergencia,
+            "finalizado":emailData.finalizado,
+            "dataChegadaOuEnvio":emailData.dataChegadaOuEnvio,
             "hasAttachments":emailData.hasAttachments,
-            "isRead":emailData.isRead   
+            "isRead":emailData.isRead               
         }
     }
 
@@ -34,7 +36,7 @@ class Persistence {
         }
     }
 
-    
+
     insertEmail = async (email) => {
         await this.connection('emails')
             .insert(await this.emailData(email));

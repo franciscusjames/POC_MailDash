@@ -15,12 +15,14 @@ class Email {
       categoria;
       deptoResponsavel;
       descricao;
+      divergencia;
+      finalizado;
     dataChegadaOuEnvio;
     hasAttachments;
-    attachments;
+    //attachments;
     isRead;
 
-    constructor(emailId, tipoEmail, remetente, assunto, emailBody, dataChegadaOuEnvio, hasAttachments, attachments, isRead) {
+    constructor(emailId, tipoEmail, remetente, assunto, emailBody, dataChegadaOuEnvio, hasAttachments, isRead) {
     // constructor() {
         this.emailId = emailId;
         this.tipoEmail = tipoEmail;
@@ -34,6 +36,8 @@ class Email {
         this.categoria = emailBody.Categoria;
         this.deptoResponsavel = emailBody.DeptoResponsavel;
         this.descricao = emailBody.Descricao;
+        this.divergencia = emailBody.Divergencia;
+        this.finalizado = emailBody.Finalizado;
         this.dataChegadaOuEnvio = dataChegadaOuEnvio;
         this.hasAttachments = hasAttachments;
         //this.attachments = attachments;
@@ -55,6 +59,8 @@ class Email {
         if (isNullOrUndefined(this.categoria))          throw Error('emailBody.Categoria é obrigatório.')
         if (isNullOrUndefined(this.deptoResponsavel))   throw Error('emailBody.DeptoResponsavel é obrigatório.')
         if (isNullOrUndefined(this.descricao))          throw Error('emailBody.Descricao é obrigatório.')
+        if (isNullOrUndefined(this.divergencia))        throw Error('emailBody.Divergencia é obrigatório.')
+        if (isNullOrUndefined(this.finalizado))         throw Error('emailBody.Finalizado é obrigatório.')
         if (isNullOrUndefined(this.dataChegadaOuEnvio)) throw Error('dataChegadaOuEnvio é obrigatório.')
         if (isNullOrUndefined(this.hasAttachments))     throw Error('hasAttachments é obrigatório.')
         // if (this.hasAttachments 

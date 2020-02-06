@@ -2,37 +2,37 @@ const PDFParser = require("pdf2json");
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs-extra');
 
+
 async function parseAnexos(emails) {    
     let parsedAnexos = await emails.filter(async (item) => {           
         if (!item.hasAttachments) {          
 			return item;
 		} else {
-            await Promise.resolve(item.attachments.filter(async (anexo) => {                
+            await item.attachments.filter(async (anexo) => {                
                 if (anexo.fileName.includes('.pdf' || '.PDF')) {                  
-                    let filePath = `./Anexos/${item.assunto}/${anexo.fileName}`;
+                    let filePath = `./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName}`;
                     let pdfParser = new PDFParser(this,1);
-	  				    
+                    
                     pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );	
 
-					pdfParser.on("pdfParser_dataReady", async pdfData => {              					  
-                        let output = JSON.parse('{' + pdfParser.getRawTextContent().split('-')[0] + '}');					  
-                        
-                        anexo.fileContent = output;
-                            
-                        console.log('FILECONTENT: ', anexo)
+					await pdfParser.on("pdfParser_dataReady", async pdfData => {              					                          
+                        fs.writeFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, 
+                                         pdfParser.getRawTextContent().split('-')[0]);
 
-                        fs.unlinkSync(filePath, (err) => {
-                            if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
-                        });
-                        //return await anexo;
-                    });						
-                    
+                        // fs.unlinkSync(filePath, (err) => {
+                        //     if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
+                        // });                        
+                    });						                                        
+
                     await pdfParser.loadPDF(filePath);
+                    
+                    anexo.fileContent = JSON.parse('{' + fs.readFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`) + '}');
+                    console.log('fileContent: ', anexo);
                 }                
    
 
                 if (anexo.fileName.includes('.xls' || '.xlsx')) { 
-                    let filePath = `./Anexos/${item.assunto}/${anexo.fileName}`;
+                    let filePath = `./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName}`;
                     
 					const result = excelToJson({ 
 						sourceFile: filePath
@@ -40,29 +40,27 @@ async function parseAnexos(emails) {
                     
                     anexo.fileContent = result.Plan1;					
                     
-                    fs.unlinkSync(filePath, (err) => {
-                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
-                    });
-                    //return await anexo;                    
+                    // fs.unlinkSync(filePath, (err) => {
+                    //     if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
+                    // });                    
                 }  
 
-			}));	                    
+			});	                    
         }
-    });  
-    console.log('parsedAnexos: ', parsedAnexos[0].attachments)
+    });      
     return Promise.all(parsedAnexos); 
 }
 
 
-async function deleteDir(emailList) {
-    emailList.forEach( async email => {
-        
-        await fs.rmdir(`./Anexos/${email.assunto}`, (err) => {
-            if (err) { console.error('Erro ao deletar diretório de anexos: ', err); return; }
-        });
-        
+async function deleteAnexosFolders(emailList) {
+    emailList.forEach( async email => {        
+        if (email.hasAttachments) {
+            await fs.rmdir(`./Anexos/${email.assunto}`, (err) => {
+                if (err) { console.error('Erro ao deletar diretório de anexos: ', err); return; }
+            });
+        }                
     });
 }
 
 
-module.exports = {parseAnexos,deleteDir}
+module.exports = {parseAnexos, deleteAnexosFolders}
