@@ -5,7 +5,7 @@ const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
 const controller = require('../controller/email.controller');
-const {parseAnexos,deleteDir} = require('../utils/parseAnexos')
+const {parseAnexos, deleteAnexosFolders} = require('../utils/parseAnexos')
 const fs = require('fs-extra');
 
 
@@ -15,7 +15,7 @@ let dateTimeParm = '2020-02-03T17:30:00Z';
 async function tratarEmails(emails) {
   emailsTratados = emails.map( (item) => {
       return {emailId: item.id,
-              tipoEmail: 'inbox',
+              tipoEmail: 'Inbox',
               remetente: item.from.emailAddress.address,
               assunto: item.subject,
               emailBody: item.body.content,              
@@ -29,15 +29,15 @@ async function tratarEmails(emails) {
 
 async function formatarEmails(emails) {
   let formatList = emails.map((item) => {
-      let textBody = htmlToText.fromString(item.emailBody)  
-	  //remover email antigo, tratamento será de um a um
-	  textBody.split('-' || '_')[0];
-      //console.log('textBody: ',textBody )      
+      let textBody = htmlToText.fromString(item.emailBody)
+      //console.log('textBody: ',textBody ) 	  
+	    let clearTextBody = textBody.split('--' || '__')[0];
+      //console.log('clearTextBody: ',clearTextBody ) 
       return {emailId: item.emailId,
               tipoEmail: item.tipoEmail,
               remetente: item.remetente,
               assunto: item.assunto,
-              emailBody: JSON.parse('{' + textBody + '}'),
+              emailBody: JSON.parse('{' + clearTextBody + '}'),
               dataChegadaOuEnvio: item.dataChegadaOuEnvio,              
               hasAttachments: item.hasAttachments,
               attachments: item.attachments,                            
@@ -49,8 +49,11 @@ async function formatarEmails(emails) {
 
 async function getAnexos(emails) {
   let anexos =  emails.map(async (item) => {   
-      if (item.hasAttachments) {          
-          try { 
+      if (item.hasAttachments) {                
+          try {             
+            if ( item.assunto.includes(':') ) {
+              item.assunto = item.assunto.replace(':', '');
+            }  
             const dir = `./Anexos/${item.assunto}`;
             fs.ensureDirSync(dir);
             
@@ -67,15 +70,14 @@ async function getAnexos(emails) {
 
           } catch (err) {
             console.log('Erro: ', err);
-          }                    
+          }        
+
       } else {
         return item;
       }
   }); 
   return Promise.all(anexos);   
 }
-
-
 
 
 /* GET /mail */
@@ -133,8 +135,8 @@ router.get('/', async function(req, res, next) {
       let finalEmailList = await parseAnexos(attachedEmailList); 
       //console.log('finalEmailList: ', finalEmailList[0].attachments[1].fileContent); 
       
-      //DELETA O DIRETÓRIO CONTENDO OS ANEXOS
-      //await deleteDir(finalEmailList);      
+      //DELETA OS DIRETÓRIOS DOS ANEXOS
+      await deleteAnexosFolders(finalEmailList);      
 
       //GRAVA LISTA DE EMAILS NO BANCO      
       //await controller.save(finalEmailList)      

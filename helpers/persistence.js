@@ -26,6 +26,15 @@ class Persistence {
         }
     }
 
+    anexoData =  (attachments,emailId) => {
+        return{
+            "emailId":emailId,
+            "fileName":attachments.fileName,
+            "fileContent":JSON.stringify(attachments.fileContent) 
+        }
+    }
+
+    
     insertEmail = async (email) => {
         await this.connection('emails')
             .insert(await this.emailData(email));
@@ -35,14 +44,7 @@ class Persistence {
         await this.connection('attachments')
             .insert( await this.anexoData(attachments,emailId))
     }
-
-    anexoData =  (attachments,emailId) => {
-        return{
-            "emailId":emailId,
-            "fileName":attachments.fileName,
-            "fileContent":JSON.stringify(attachments.fileContent) 
-        }
-    }
+    
 }
 
 module.exports = Persistence;
