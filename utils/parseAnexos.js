@@ -16,7 +16,7 @@ async function parseAnexos(emails) {
                     pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );	
 
 					await pdfParser.on("pdfParser_dataReady", async pdfData => {              					                          
-                        fs.writeFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, 
+                        await fs.writeFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, 
                                          pdfParser.getRawTextContent().split('-')[0]);
 
                         // fs.unlinkSync(filePath, (err) => {
