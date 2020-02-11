@@ -67,32 +67,24 @@ async function deleteAnexosFolders(emailList) {
 
             await email.attachments.forEach(async anexo => {
                 if (anexo.fileName.includes('.pdf' || '.PDF')) {
-                    try {
-                        await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`);
-                    } catch (err) {
-                        console.error(`Erro ao deletar anexo '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}' : `, err);
-                    }; console.log(`DELETOU '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}'`);
-                    try {
-                        await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`);
-                    } catch (err) {
-                        console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err);
-                    }; console.log(`DELETOU '${anexo.fileName}'`);
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}' : `, err); return; }
+                    }); console.log(`DELETOU '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}'`)
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
+                    }); console.log(`DELETOU '${anexo.fileName}'`)
                 } else {
-                    try {
-                        await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`);
-                    } catch (err) {
-                        console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err);
-                    }; console.log(`DELETOU '${anexo.fileName}'`);
+                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                        if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
+                    }); console.log(`DELETOU '${anexo.fileName}'`)
                 }
             });
 
-            try {
-                await fs.rmdirSync(`./Anexos/${email.assunto.replace(':', '')}`);
-                console.log(`DELETANDO FOLDER '${email.assunto.replace(':', '')}'`);
-            } catch (err) {
-                console.error('Erro ao deletar diretório de anexos: ', err);
-            }
 
+            await fs.rmdir(`./Anexos/${email.assunto.replace(':', '')}`, (err) => {
+                console.log(`DELETANDO FOLDER '${email.assunto.replace(':', '')}'`)
+                if (err) { console.error('Erro ao deletar diretório de anexos: ', err); return; }
+            });
         }
     });
 }

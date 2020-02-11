@@ -7,7 +7,7 @@ const htmlToText = require('html-to-text');
 const controller = require('../controller/email.controller');
 const { parseAnexos, deleteAnexosFolders, pdfToText } = require('../utils/parseAnexos')
 const fs = require('fs-extra');
-
+const {sleepTime} = require('../utils/sleepTime')
 
 let client, emailsTratados;
 let dateTimeParm = '2020-02-03T17:30:00Z';
@@ -50,6 +50,7 @@ async function formatarEmails(emails) {
 }
 
 async function getAnexos(emails) {
+  console.log(emails)
   let anexos = emails.map(async (item) => {
     if (item.hasAttachments) {
       try {
@@ -101,7 +102,7 @@ router.get('/', async function (req, res, next) {
       // Get the 10 newest messages from inbox
       const result = await client
         .api(`/me/mailfolders/inbox/messages`)
-        .top(5)
+        .top(1)
         //.select('subject,from,receivedDateTime,isRead')
         .select('*')
         .orderby('receivedDateTime DESC')
@@ -112,7 +113,7 @@ router.get('/', async function (req, res, next) {
       //console.log('result.value: ', result.value[4]);
 
       //FILTRA DADOS DO EMAIL QUE SERAO UTILIZADOS
-      await tratarEmails([result.value[4]]);
+      await tratarEmails([result.value[0]]);
       //console.log('emailsTratados: ', emailsTratados);        
 
     } catch (err) {
@@ -124,7 +125,7 @@ router.get('/', async function (req, res, next) {
 
     //FORMATA EMAILSBODY (HTML->TEXT->JSON) P/ GRAVAR NO BANCO
     let emailsFormatados = await formatarEmails(emailsTratados);
-    //console.log('emailsFormatados: ', emailsFormatados);
+    console.log('emailsFormatados: ', emailsFormatados);
 
     //PEGA ANEXOS DOS EMAILS, SE HOUVER
     let attachedEmailList = await getAnexos(emailsFormatados);
@@ -133,11 +134,10 @@ router.get('/', async function (req, res, next) {
     //TRANSFORMA O CONTEUDO DOS ANEXOS EM JSON/TXT
     let parsedEmailList = await parseAnexos(attachedEmailList);
     //console.log('parsedEmailList: ', parsedEmailList);
-
+    await sleepTime(2000)
     //TRANSFORMA O CONTEUDO TXT(SE HOUVER) EM JSON
     let finalEmailList = await pdfToText(parsedEmailList);
-    console.log('finalEmailList: ', finalEmailList[0].attachments);
-
+    console.log('finalEmailList: ', finalEmailList);
     //DELETA OS DIRETÓRIOS DOS ANEXOS
     await deleteAnexosFolders(finalEmailList);
 
