@@ -62,26 +62,32 @@ async function pdfToText(emailList) {
 
 
 async function deleteAnexosFolders(emailList) {
-    emailList.forEach(async email => {
+    console.log('emailsList:',emailList)
+    await emailList.forEach(async email => {
         if (email.hasAttachments) {
 
-            await email.attachments.forEach(async anexo => {
+            await email.attachments.filter(async anexo => {
+                
                 if (anexo.fileName.includes('.pdf' || '.PDF')) {
-                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, (err) => {
+                    console.log('entrou para exclusão do pdf')
+                    console.log(email.assunto)
+                    console.log(anexo.fileName)
+                    await fs.unlinkSync(process.cwd()+`/Anexos/${email.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`, (err) => {
                         if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}' : `, err); return; }
                     }); console.log(`DELETOU '${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}'`)
-                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                    await fs.unlinkSync(process.cwd()+`/Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
                         if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
                     }); console.log(`DELETOU '${anexo.fileName}'`)
                 } else {
-                    await fs.unlinkSync(`./Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
+                    console.log('entrou para exclusão do excel')
+                    await fs.unlinkSync(process.cwd()+`/Anexos/${email.assunto.replace(':', '')}/${anexo.fileName}`, (err) => {
                         if (err) { console.error(`Erro ao deletar anexo '${anexo.fileName}' : `, err); return; }
                     }); console.log(`DELETOU '${anexo.fileName}'`)
                 }
             });
 
 
-            await fs.rmdir(`./Anexos/${email.assunto.replace(':', '')}`, (err) => {
+            await fs.rmdir(process.cwd()+`/Anexos/${email.assunto.replace(':', '')}`, (err) => {
                 console.log(`DELETANDO FOLDER '${email.assunto.replace(':', '')}'`)
                 if (err) { console.error('Erro ao deletar diretório de anexos: ', err); return; }
             });
