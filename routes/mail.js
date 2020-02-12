@@ -147,8 +147,6 @@ router.get('/', async function (req, res, next) {
 		//DELETA OS DIRETÓRIOS DOS ANEXOS
 		await deleteAnexosFolders(finalEmailList);
 
-		await sleepTime(1000); //AGUARDANDO LIMPEZA DE ARQUIVOS ANTES DE GRAVAR
-
 		//GRAVA LISTA DE EMAILS NO BANCO      
 		await controller.save(finalEmailList)
 
