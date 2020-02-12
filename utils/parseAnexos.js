@@ -21,10 +21,6 @@ async function parseAnexos(emails) {
                     });
 
                     await pdfParser.loadPDF(filePath);
-
-                    // anexo.fileContent = JSON.parse('{' + fs.readFileSync(`./Anexos/${item.assunto.replace(':', '')}/${anexo.fileName.replace('.pdf' || '.PDF', '.txt')}`) + '}');
-                    // console.log('fileContent: ', anexo);
-
                 }
 
 

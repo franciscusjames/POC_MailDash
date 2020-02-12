@@ -4,117 +4,154 @@ const authHelper = require('../helpers/auth');
 const graph = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
 const htmlToText = require('html-to-text');
+const controller = require('../controller/email.controller');
+const { parseAnexos, deleteAnexosFolders, pdfToText } = require('../utils/parseAnexos')
+const fs = require('fs-extra');
+const { sleepTime } = require('../utils/sleepTime')
 
-let emailsTratados, client;
+let client, emailsTratados;
+let dateTimeParm = '2020-02-03T17:30:00Z';
+
 
 async function tratarEmails(emails) {
-  emailsTratados = emails.map((item) => {
-      return {emailId: item.id, 
-              emailBody: item.body.content,
-              remetente: item.from.emailAddress.address,
-              assunto: item.subject,
-              //isRead: item.isRead,
-              dataChegadaOuEnvio: item.sentDateTime,
-              hasAttachments: item.hasAttachments,
-              attachments: []
-      };
-  });
-  //console.log('emailsTratados: ', emailsTratados);   
+	emailsTratados = emails.map((item) => {
+		return {
+			emailId: item.id,
+			tipoEmail: 'Outbox',
+			remetente: item.from.emailAddress.address,
+			assunto: item.subject,
+			emailBody: item.body.content,
+			dataChegadaOuEnvio: item.sentDateTime,
+			attachments: [],
+			hasAttachments: item.hasAttachments,
+			isRead: item.isRead
+		};
+	});
 }
 
 
 async function formatarEmails(emails) {
-  return emailsFormatados = emails.map((item) => {
-      return {emailId: item.emailId, 
-              emailBody: htmlToText.fromString(item.emailBody),
-              remetente: item.remetente,
-              assunto: item.assunto,
-              //isRead: item.isRead,
-              dataChegadaOuEnvio: item.dataChegadaOuEnvio,
-              hasAttachments: item.hasAttachments,
-              attachments: item.attachments
-      };
-  });  
+	let formatList = emails.map((item) => {
+		let textBody = htmlToText.fromString(item.emailBody)
+		//console.log('textBody: ',textBody ) 	  
+		let clearTextBody = textBody.split('--' || '__')[0];
+		//console.log('clearTextBody: ',clearTextBody ) 
+		return {
+			emailId: item.emailId,
+			tipoEmail: item.tipoEmail,
+			remetente: item.remetente,
+			assunto: item.assunto,
+			emailBody: JSON.parse('{' + clearTextBody + '}'),
+			dataChegadaOuEnvio: item.dataChegadaOuEnvio,
+			hasAttachments: item.hasAttachments,
+			attachments: item.attachments,
+			isRead: item.isRead,
+		};
+	});
+	return formatList;
 }
+
 
 async function getAnexos(emails) {
-  let attachedEmailList = emails.map(async (item) => {      
-      if (item.hasAttachments) {          
-          try {            
-            const res = await client
-            .api(`/me/messages/${item.emailId}/attachments/`)
-            .get();   
+	console.log(emails)
+	let anexos = emails.map(async (item) => {
+		if (item.hasAttachments) {
+			try {
+				const dir = `./Anexos/${item.assunto.replace(':', '')}`;
+				fs.ensureDirSync(dir);
 
-            let attach = res.value;
+				const res = await client
+					.api(`/me/messages/${item.emailId}/attachments/`)
+					.get();
 
-            attach.map((anexo) => {
-                item.attachments.push({fileName:anexo.name, fileContent: anexo.contentBytes});                 
-            });     
-          } catch (err) {
-            console.log('Erro: ', err);
-          }                    
-      };
-  });
-  return attachedEmailList;
+				let attach = res.value;
+				attach.map((anexo) => {
+					fs.writeFileSync(`${dir}/${anexo.name}`, anexo.contentBytes, { encoding: 'base64' })
+					item.attachments.push({ fileName: anexo.name });
+				});
+				return item;
+
+			} catch (err) {
+				console.log('Erro: ', err);
+			}
+
+		} else {
+			return item;
+		}
+	});
+	return Promise.all(anexos);
 }
 
+
 /* GET /mail */
-router.get('/', async function(req, res, next) {
-    let parms = { title: 'Outbox', active: { outbox: true } };
-  
-    const accessToken = await authHelper.getAccessToken(req.cookies, res);
-    const userName = req.cookies.graph_user_name;
-  
-    if (accessToken && userName) {
-      parms.user = userName;
-  
-      // Initialize Graph client
-      client = graph.Client.init({
-        authProvider: (done) => {
-          done(null, accessToken);
-        }
-      });
+router.get('/', async function (req, res, next) {
+	let parms = { title: 'Outbox', active: { outbox: true } };
 
-      //CAIXA DE SAIDA
-      try {
-        // Get the 10 newest messages from outbox
-        const result = await client
-        .api('/me/mailfolders/sentitems/messages')
-        .top(10)
-        //.select('subject,from,receivedDateTime,isRead')
-        .select('*')                               
-        .orderby('sentDateTime DESC')
-        .get();            
-        parms.messages = result.value;            
-        res.render('mailOut', parms);
-        
-        //FILTRA DADOS DO EMAIL QUE SERAO UTILIZADOS
-        await tratarEmails(result.value); 
+	const accessToken = await authHelper.getAccessToken(req.cookies, res);
+	const userName = req.cookies.graph_user_name;
 
-      } catch (err) {
-        parms.message = 'Error retrieving messages';
-        parms.error = { status: `${err.code}: ${err.message}` };
-        parms.debug = JSON.stringify(err.body, null, 2);
-        res.render('error', parms);
-      }
-      
-      //FORMATA EMAILSBODY (HTML->TEXT) P/ GRAVAR NO BANCO
-      let emailsFormatados = await formatarEmails(emailsTratados);
-      //console.log('emailsFormatados: ', emailsFormatados);
+	if (accessToken && userName) {
+		parms.user = userName;
 
-      //PEGA ANEXOS DOS EMAILS, SE HOUVER
-      //let attachedEmailList = await getAnexos(emailsFormatados); 
-         
-      //AGRUPAR EMAILS COM MESMO ASSUNTO, OU FILTRAR POR ASSUNTO E DEIXAR O ULTIMO?
-      //let filteredEmails = await filtrarEmails();
+		// Initialize Graph client
+		client = graph.Client.init({
+			authProvider: (done) => {
+				done(null, accessToken);
+			}
+		});
 
-      //GRAVA LISTA DE EMAILS NO BANCO
-      //await postEmails(finalEmailList); 
+		//CAIXA DE SAIDA
+		try {
+			// Get the 10 newest messages from outbox
+			const result = await client
+				.api('/me/mailfolders/sentitems/messages')
+				.top(10)
+				//.select('subject,from,receivedDateTime,isRead')
+				.select('*')
+				.orderby('sentDateTime DESC')
+				.get();
+			parms.messages = result.value;
+			res.render('mailOut', parms);
+			//console.log('result.value: ', result.value);
 
-    } else {
-      // Redirect to home
-      res.redirect('/');
-    }
-  });
+			//FILTRA DADOS DO EMAIL QUE SERAO UTILIZADOS
+			await tratarEmails(result.value);
+			//console.log('emailsTratados: ', emailsTratados);
+
+		} catch (err) {
+			parms.message = 'Error retrieving messages';
+			parms.error = { status: `${err.code}: ${err.message}` };
+			parms.debug = JSON.stringify(err.body, null, 2);
+			res.render('error', parms);
+		}
+		//FORMATA EMAILSBODY (HTML->TEXT->JSON) P/ GRAVAR NO BANCO
+		let emailsFormatados = await formatarEmails(emailsTratados);
+		//console.log('emailsFormatados: ', emailsFormatados);
+
+		//PEGA ANEXOS DOS EMAILS, SE HOUVER
+		let attachedEmailList = await getAnexos(emailsFormatados);
+		//console.log('attachedEmailList: ', attachedEmailList);   
+
+		//TRANSFORMA O CONTEUDO DOS ANEXOS EM JSON/TXT
+		let parsedEmailList = await parseAnexos(attachedEmailList);
+		//console.log('parsedEmailList: ', parsedEmailList);
+
+		await sleepTime(1000); //AGUARDANDO TXT SER ESCRITO
+
+		//TRANSFORMA O CONTEUDO TXT(SE HOUVER) EM JSON
+		let finalEmailList = await pdfToText(parsedEmailList);
+		console.log('finalEmailList: ', finalEmailList);
+
+		//DELETA OS DIRETÓRIOS DOS ANEXOS
+		await deleteAnexosFolders(finalEmailList);
+
+		//GRAVA LISTA DE EMAILS NO BANCO      
+		//await controller.save(finalEmailList)      
+
+	} else {
+		// Redirect to home
+		res.redirect('/');
+	}
+});
 
 module.exports = router;
